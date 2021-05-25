@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+  <div class="d-grid gap-2 d-md-flex">
+    <a href="{{ url_for('keep_single') }}" class="btn btn-lg btn-primary" role="button">Edit a Single KEEP Term</a>
+    <a href="{{ url_for('prism_single') }}" class="btn btn-lg btn-primary" role="button">Edit a Single PRISM Term</a>
+  </div>
+</div>
+{% endblock %}
