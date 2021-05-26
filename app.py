@@ -43,13 +43,12 @@ def dashboard():
 def keep_single():
     resp = make_response(
         render_template(
-            "keep-single.html", title="Edit a Single KEEP Term | Harmonizer"
+            "single.html", title="Edit a Single KEEP Term | Harmonizer", kind="keep"
         )
     )
     existing_cookie = request.cookies.get("cromulent")
     if not existing_cookie:
         rando = f"macclure-{random.randint(1,1000)}"
-        print(rando)
         resp.set_cookie(
             "cromulent", rando, max_age=300, samesite="None", secure=True,
         )
@@ -60,13 +59,12 @@ def keep_single():
 def prism_single():
     resp = make_response(
         render_template(
-            "prism-single.html", title="Edit a Single PRISM Term | Harmonizer"
+            "single.html", title="Edit a Single PRISM Term | Harmonizer", kind="prism"
         )
     )
     existing_cookie = request.cookies.get("cromulent")
     if not existing_cookie:
         rando = f"macclure-{random.randint(1,1000)}"
-        print(rando)
         resp.set_cookie(
             "cromulent", rando, max_age=300, samesite="None", secure=True,
         )

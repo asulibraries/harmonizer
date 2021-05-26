@@ -34,6 +34,10 @@ var inputURI = "";
 
 let base_url = ((window.location.origin).endsWith('/')) ? window.location.origin : (window.location.origin + '/');
 
+let respType = respInfo.getAttribute('data-type');
+
+let termSearchPrefix = (respType === "keep") ? "https://keep.lib.asu.edu/taxonomy/term/" : "https://prism.lib.asu.edu/taxonomy/term/";
+
 
 function objNotThere(obj, list) {
   for (var i = 0; i < list.length; i++) {
@@ -80,12 +84,11 @@ function searchFunc(event) {
       else {
         respInfo.innerHTML = `No connected authority URIs in this term record.`
       }
-      let respType = respInfo.getAttribute('data-type');
       if (respType === "keep") {
-        respInfo.innerHTML += `<br /><br /><a href="https://keep.lib.asu.edu/search?search_api_fulltext=&f%5B0%5D=linked_agents%3A${data.name[0].value}" class="btn btn-secondary" target="_blank" role="button">See Linked Items in KEEP (Opens New Tab)</a>`
+        respInfo.innerHTML += `<br /><br /><a href="https://keep.lib.asu.edu/search?search_api_fulltext=&f%5B0%5D=linked_agents%3A${data.name[0].value}" class="btn btn-secondary" target="_blank" role="button">Open Linked KEEP Items in New Tab</a>`
       }
       else if (respType === "prism") {
-        respInfo.innerHTML += `<br /><br /><a href="https://prism.lib.asu.edu/search?search_api_fulltext=&f%5B0%5D=linked_agents%3A${data.name[0].value}" class="btn btn-secondary" target="_blank" role="button">See Linked Items in PRISM (Opens New Tab)</a>`
+        respInfo.innerHTML += `<br /><br /><a href="https://prism.lib.asu.edu/search?search_api_fulltext=&f%5B0%5D=linked_agents%3A${data.name[0].value}" class="btn btn-secondary" target="_blank" role="button">Open Linked PRISM Items in New Tab</a>`
       }
       form.style.display = "none";
       jumbo.style.display = "block";
@@ -107,7 +110,7 @@ function searchFunc(event) {
     err.style.display = "block";
   };
 
-  if (termInputBox.value.startsWith("http")) {
+  if ((termInputBox.value.startsWith("https://prism.lib.asu.edu/taxonomy/term/")) || (termInputBox.value.startsWith("https://keep.lib.asu.edu/taxonomy/term/"))) {
     if (termInputBox.value.endsWith("?_format=json")){
       searchURL = termInputBox.value;
       inputURI = (termInputBox.value).replace("?_format=json", "");
@@ -118,11 +121,18 @@ function searchFunc(event) {
     }
       xhr.open("GET", searchURL)
       xhr.send()
-    } else {
+  }
+  else if (typeof (parseInt(termInputBox.value)) === "number") {
+    searchURL = (termSearchPrefix + termInputBox.value + "?_format=json")
+    inputURI = (termSearchPrefix + termInputBox.value);
+    xhr.open("GET", searchURL)
+    xhr.send()
+  }
+  else {
       xhr.abort()
-      err.innerHTML = "You didn't enter a URL/URI!";
+      err.innerHTML = "You didn't enter a URL/taxonomy term ID!";
       err.style.display = "block";
-    };
+  };
 }
 
 termSearchButton.addEventListener("click", ()=>{

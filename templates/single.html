@@ -4,8 +4,16 @@
     <div class="container" style="padding-bottom: 15px; padding-top: 10px;background-color: #e9ecef;border-radius: .3rem;margin-bottom: 15px" id="form-div">
       <form id="the-form">
         <div class="form-group">
-          <label for="exampleInputEmail1"><strong>KEEP Taxonomy Term</strong></label>
-          <input type="text" class="form-control" id="term-input" placeholder="Enter KEEP URI">
+          {% if kind == "keep" %}
+          <label for="term-input"><h4>KEEP URL/Taxonomy Term</h4></label>
+          {% elif kind == "prism" %}
+          <label for="term-input"><h4>PRISM URL/Taxonomy Term</h4></label>
+          {% endif %}
+          {% if kind == "keep" %}
+          <input type="text" class="form-control" id="term-input" placeholder="Enter KEEP URL/taxonomy term ID here">
+          {% elif kind == "prism" %}
+          <input type="text" class="form-control" id="term-input" placeholder="Enter PRISM URL/taxonomy term ID here">
+          {% endif %}
         </div>
         <button type="button" type="submit" value="submit" class="btn btn-primary btn-lg" id="term-search" style="margin-top: 10px">Lookup Term</button>
         <button type="button" type="submit" value="submit" class="btn btn-outline-primary btn-lg" id="term-search-loading" style="margin-top: 10px;display: none;" disabled><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Looking for term...</button>
@@ -14,8 +22,12 @@
       <div id="response" style="display: none;padding: 1rem 1rem;background-color: #e9ecef;border-radius: .3rem;">
         <h1 class="display-4" id="jumbo-name" style="margin-top: -15px;">Results</h1>
         <div id="resp-data-container" style="display: none;padding: 15px;margin-top: 15px;margin-bottom: 15px;background-color: #f9fafb;border-radius: .3rem;margin-bottom: 15px;">
+          {% if kind == "keep" %}
           <h3>KEEP Record Data</h3>
-          <div id="resp-data" data-type="keep"></div>
+          {% elif kind == "prism" %}
+          <h3>PRISM Record Data</h3>
+          {% endif %}
+          <div id="resp-data" data-type="{{ kind }}"></div>
           <div style="margin-top: 10px;">
             <button class="btn btn-danger me-md-2" type="button">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-triangle" viewBox="0 0 16 16">

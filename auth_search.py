@@ -158,7 +158,7 @@ def grab_lc(search_term):
     enriched = asyncio.run(enrich_lc_data_worker(deduped))
     sorted_enriched = sorted(enriched, key=lambda k: k["fuzzy"], reverse=True)
     t2 = perf_counter()
-    print(t2 - t1)
+    print(f"LC Timer: {t2-t1}")
     if len(sorted_enriched) > 0:
         return sorted_enriched
     else:
