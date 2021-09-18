@@ -1,14 +1,9 @@
-const formDiv = document.getElementById("form-div");
-const form = document.getElementById("the-form");
-const termSearchButton = document.getElementById("term-search");
-const termSearchLoading = document.getElementById("term-search-loading");
-const termInputBox = document.getElementById("term-input");
-const err = document.getElementById("error");
 const jumbo = document.getElementById("response");
 const respContainer = document.getElementById("resp-data-container");
 const respInfo = document.getElementById("resp-data");
 const respName = document.getElementById("jumbo-name")
-const newSearch = document.getElementById("jumbo-new");
+const deleteRecord = document.getElementById("delete-record")
+const itemsLink = document.getElementById('items-link')
 // LC search
 const lcNames = document.getElementById("lc-names");
 const lcNamesLoading = document.getElementById("lc-names-loading");
@@ -25,8 +20,20 @@ const noMesh = document.getElementById("noMesh");
 const pushModal = document.getElementById('pushModal');
 const sendPutRequest = document.getElementById('push');
 const pushLoading = document.getElementById('push-loading');
-const modalNewSearch = document.getElementById('modal-new-search');
 const closeModal = document.getElementById('close-modal');
+// manual add modal
+const manAddModal = document.getElementById('manual-add-modal')
+const manAddPutRequest = document.getElementById('manual-add-push');
+const manAddpushLoading = document.getElementById('manual-add-push-loading');
+const manAddForm = document.getElementById('man-add-form');
+const manAddSearch = document.getElementById('man-add-search');
+const manAddSearchLoading = document.getElementById('man-add-search-loading');
+const manAddBody = document.getElementById('manual-add-body')
+const manAddErr = document.getElementById('manual-add-error')
+const manAddUriInput = document.getElementById('manual-add-uri-input')
+const manAddResult = document.getElementById('manual-add-result')
+//cookies
+const cookies = getCookies();
 
 var tempArray = []
 var search = "";
@@ -35,122 +42,52 @@ var inputURI = "";
 let base_url = ((window.location.origin).endsWith('/')) ? window.location.origin : (window.location.origin + '/');
 
 let respType = respInfo.getAttribute('data-type');
-
+let myCookie = (respType === "keep") ? cookies["keep"] : cookies["prism"];
+let rec_id = respInfo.getAttribute('data-id');
 let termSearchPrefix = (respType === "keep") ? "https://keep.lib.asu.edu/taxonomy/term/" : "https://prism.lib.asu.edu/taxonomy/term/";
 
 
-function objNotThere(obj, list) {
-  for (var i = 0; i < list.length; i++) {
-      if (list[i] === obj) {
-          return false;
-      }
-  }
-  return true;
-}
-
-
-function refresh() {
-  window.location.reload();
-  return false;
-}
-
-
-function searchFunc(event) {
-  event.preventDefault();
-
-  if (err.style.display = "block") {
-    err.style.display = "none";
-  };
-
-  termSearchButton.style.display = "none";
-  termSearchLoading.style.display = "block";
-
+function searchFunc() {
   let xhr = new XMLHttpRequest()
   xhr.responseType = 'json';
   xhr.timeout = 2000;
   xhr.onload = function() {
     if (xhr.status === 200) {
       data = xhr.response;
-      termSearchLoading.style.display = "none";
       respName.innerHTML = `${data.name[0].value}`;
       if ("field_authority_link" in data) {
         let connected_ids = data.field_authority_link;
         if (connected_ids.length > 0) {
-          respInfo.innerHTML = `${data.name[0].value} has the following connected authority record URIs: ${connected_ids.join(', ')}`;
+          let uris = connected_ids.map(obj => { return `<li><a href="${obj.uri}" target="_blank">${obj.uri}</a></li>` });
+          respInfo.innerHTML = `<br />${data.name[0].value} has the following connected authority record URIs:<ul>${uris.join('')}</ul>`;
         } else {
-          respInfo.innerHTML = `No connected authority URIs in this term record.`
+          respInfo.innerHTML = `<br />No connected authority URIs in this term record.<br />`
         }
       }
       else {
-        respInfo.innerHTML = `No connected authority URIs in this term record.`
+        respInfo.innerHTML = `<br />No connected authority URIs in this term record.<br />`
       }
-      if (respType === "keep") {
-        respInfo.innerHTML += `<br /><br /><a href="https://keep.lib.asu.edu/search?search_api_fulltext=&f%5B0%5D=linked_agents%3A${data.name[0].value}" class="btn btn-secondary" target="_blank" role="button">Open Linked KEEP Items in New Tab</a>`
-      }
-      else if (respType === "prism") {
-        respInfo.innerHTML += `<br /><br /><a href="https://prism.lib.asu.edu/search?search_api_fulltext=&f%5B0%5D=linked_agents%3A${data.name[0].value}" class="btn btn-secondary" target="_blank" role="button">Open Linked PRISM Items in New Tab</a>`
-      }
-      form.style.display = "none";
+      itemsLink.setAttribute("href", `https://${respType}.lib.asu.edu/search?search_api_fulltext=&f%5B0%5D=linked_agents%3A${data.name[0].value}`)
       jumbo.style.display = "block";
       respContainer.style.display = "block";
       search = data.name[0].value;
      } else {
        // request error
-       err.innerHTML = "Your request failed!";
-       termSearchButton.style.display = "block";
-       err.style.display = "block";
        console.log('HTTP error:', xhr.status, xhr.statusText);
      }
     };
 
   xhr.onerror = function() {
     console.log("Request failed");
-    err.innerHTML = "Your request failed!";
-    termSearchButton.style.display = "block";
-    err.style.display = "block";
   };
 
-  if ((termInputBox.value.startsWith("https://prism.lib.asu.edu/taxonomy/term/")) || (termInputBox.value.startsWith("https://keep.lib.asu.edu/taxonomy/term/"))) {
-    if (termInputBox.value.endsWith("?_format=json")){
-      searchURL = termInputBox.value;
-      inputURI = (termInputBox.value).replace("?_format=json", "");
-    }
-    else {
-      searchURL = (termInputBox.value + "?_format=json")
-      inputURI = termInputBox.value;
-    }
-      xhr.open("GET", searchURL)
-      xhr.send()
-  }
-  else if (typeof (parseInt(termInputBox.value)) === "number") {
-    searchURL = (termSearchPrefix + termInputBox.value + "?_format=json")
-    inputURI = (termSearchPrefix + termInputBox.value);
-    xhr.open("GET", searchURL)
-    xhr.send()
-  }
-  else {
-      xhr.abort()
-      err.innerHTML = "You didn't enter a URL/taxonomy term ID!";
-      err.style.display = "block";
-  };
+  searchURL = (termSearchPrefix + rec_id + "?_format=json")
+  inputURI = (termSearchPrefix + rec_id);
+  xhr.open("GET", searchURL)
+  xhr.send()
 }
 
-termSearchButton.addEventListener("click", ()=>{
-  searchFunc(event);
-});
-
-form.addEventListener("submit", ()=>{
-  searchFunc(event);
-});
-
-newSearch.addEventListener("click", ()=>{
-  refresh()
-});
-
-modalNewSearch.addEventListener("click", ()=>{
-  refresh()
-});
-
+searchFunc();
 
 lcNames.addEventListener("click", ()=>{
   lcNames.style.display = "none";
@@ -187,7 +124,7 @@ lcNames.addEventListener("click", ()=>{
                                         <p>LC URI: <a href="${arrayItem.uri}" target="_blank">${arrayItem.uri}</a></p>
                                         <p>Sources consulted on LC record:</p>
                                         <ul id="${ul_list_number}"></ul>
-                                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#pushModal" data-bs-uri="${arrayItem.uri}" data-bs-heading="${arrayItem.heading}">This is My Match</button>
+                                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#pushModal" data-bs-uri="${arrayItem.uri}" data-bs-heading="${arrayItem.heading}" data-bs-source="${lcSource(arrayItem.uri)}>This is My Match</button>
                                       </div>
                                     </div>`
             accordionLCnames.appendChild(newAccItem);
@@ -253,7 +190,7 @@ meshNames.addEventListener("click", ()=>{
                                               <p>MESH URI: <a href="${arrayItem.uri}">${arrayItem.uri}</a></p>
                                               <p>Alternative labels:</p>
                                               <ul id="${ul_list_number}"></ul>
-                                              <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#pushModal" data-bs-uri="${arrayItem.uri}" data-bs-heading="${arrayItem.heading}">This is My Match</button>
+                                              <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#pushModal" data-bs-uri="${arrayItem.uri}" data-bs-heading="${arrayItem.heading}" data-bs-heading="mesh">This is My Match</button>
                                             </div>
                                           </div>`
                   accordionMeshNames.appendChild(newAccItem);
@@ -302,17 +239,28 @@ pushModal.addEventListener('show.bs.modal', function (event) {
   // Extract info from data-bs-* attributes
   let uri = button.getAttribute('data-bs-uri');
   let heading = button.getAttribute('data-bs-heading');
+  let source = button.getAttribute('data-bs-source');
 
   let modalChangesText = pushModal.querySelector("#changes");
 
   modalChangesText.innerHTML = `You are about to change the taxonomy record for <strong>"${search}" (${inputURI})</strong> by connecting it with the URI of external authority entity <strong>"${heading}" (${uri})</strong>. Are you sure you want to do this?`
+  sendPutRequest.setAttribute("data-bs-uri", uri);
+  sendPutRequest.setAttribute("data-bs-heading", heading);
+  sendPutRequest.setAttribute("data-bs-repo", respType);
+  sendPutRequest.setAttribute("data-bs-source", source);
+  sendPutRequest.setAttribute("data-bs-term-id", rec_id);
 })
 
 sendPutRequest.addEventListener("click", function (event) {
-  var url = "https://httpbin.org/post";
+  // Extract info from data-bs-* attributes
+  let uri = sendPutRequest.getAttribute("data-bs-uri");
+  let heading = sendPutRequest.getAttribute("data-bs-heading");
+  let respType = sendPutRequest.getAttribute("data-bs-repo");
+  let source = sendPutRequest.getAttribute("data-bs-source");
+  let termId = sendPutRequest.getAttribute("data-bs-term-id");
 
   var xhr = new XMLHttpRequest();
-  xhr.open("POST", url);
+  xhr.open("POST", "https://harmonizer.lib.asu.edu/subspace/update_repo_term");
 
   xhr.setRequestHeader("Accept", "application/json");
   xhr.setRequestHeader("Content-Type", "application/json");
@@ -326,7 +274,7 @@ sendPutRequest.addEventListener("click", function (event) {
       pushLoading.style.display = "none";
       let modalChangesText = pushModal.querySelector("#changes");
       if (xhr.status === 200) {
-        modalChangesText.innerHTML += `<br /><br /><strong>It worked!</strong>`
+        modalChangesText.innerHTML += `<br /><br /><strong>Record updated!</strong>`
         closeModal.style.display = "none";
         modalNewSearch.style.display = "block";
         console.log(xhr.status);
@@ -341,14 +289,197 @@ sendPutRequest.addEventListener("click", function (event) {
       }
     }};
 
-  var data = `{
-       "text": "HARMONIZER Debug",
-       "blocks": [
-            {"type": "context", "elements": [{"type": "mrkdwn", "text": "HARMONIZER"}]},
-            {"type": "divider"},
-            {"type": "section", "text": {"type": "mrkdwn", "text": "SUCCESS"}}
-       ]
-    }`;
+  let data = {
+    "repo_name": respType,
+    "term_id": termId,
+    "uri": uri,
+    "term_name": heading,
+    "source": source,
+    "token": myCookie
+  };
 
-  xhr.send(data);
+  xhr.send(JSON.stringify(data));
 })
+
+
+deleteRecord.addEventListener("click", function (event) {
+  let user = deleteRecord.getAttribute('data-user');
+  let job_id = deleteRecord.getAttribute('data-job_id');
+  let rec_id = deleteRecord.getAttribute('data-rec_id');
+
+  let xhr = new XMLHttpRequest();
+  xhr.responseType = 'json';
+  xhr.timeout = 5000;
+  xhr.open("POST", "https://harmonizer.lib.asu.edu/subspace/delete_rec_from_job");
+  xhr.setRequestHeader("Content-Type", "application/json");
+  xhr.setRequestHeader("Accept", "application/json");
+  xhr.onload = function() {
+    if (xhr.status === 200) {
+      window.location.reload();
+      return false;
+    }
+    else {
+      // request error
+      window.alert("This is awkward, but your delete request failed.");
+      console.log('HTTP error:', xhr.status, xhr.statusText);
+    }
+  };
+  xhr.onerror = function() {
+    window.alert("This is awkward, but your delete request failed.");
+    console.log('HTTP error:', xhr.status, xhr.statusText);
+  };
+  let payload = {
+      "user": user,
+      "job_id": job_id,
+      "rec_id": rec_id
+  };
+  xhr.send(JSON.stringify(payload));
+});
+
+function getCookies() {
+  var temp = (document.cookie).split("; ");
+  var tempObj = {};
+  for (var i = 0; i < temp.length; i++) {
+    var cookieName = ((temp[i]).split("="))[0]
+    var cookieVal = ((temp[i]).split("="))[1]
+    if (cookieName === "harmonizer_keep") {
+      tempObj.keep = cookieVal;
+    }
+    else if (cookieName === "harmonizer_prism") {
+      tempObj.prism = cookieVal;
+    }
+  }
+  return tempObj
+}
+
+function lcSource(uri) {
+  if (uri.startsWith("https://id.loc.gov/authorities/names/")) {
+    return "lcnaf"
+  }
+  else if (uri.startsWith("https://id.loc.gov/authorities/subjects/")) {
+    return "lcsh"
+  }
+  else if (uri.startsWith("https://id.loc.gov/authorities/childrensSubjects/")) {
+    return "lcshac"
+  }
+  else if (uri.startsWith("https://id.loc.gov/authorities/genreForms/")) {
+    return "lcgft"
+  }
+}
+
+
+function manLCSearch(event) {
+  event.preventDefault();
+
+  if (manAddErr.style.display = "block") {
+    manAddErr.style.display = "none";
+  };
+
+  manAddSearch.style.display = "none";
+  manAddSearchLoading.style.display = "block";
+
+  let xhr = new XMLHttpRequest()
+  xhr.responseType = 'json';
+  xhr.open("POST", "https://harmonizer.lib.asu.edu/subspace/lc-manual-search");
+  xhr.setRequestHeader("Accept", "application/json");
+  xhr.setRequestHeader("Content-Type", "application/json");
+
+  xhr.onload = function() {
+    if (xhr.status === 200) {
+      returnedData = xhr.response;
+      manAddForm.style.display = "none";
+      manAddSearchLoading.style.display = "none";
+      manAddBody.innerHTML += `<div>
+                                  <h4>Found: <a href="${returnedData.response.uri}" target="_blank">${returnedData.response.name}</a> (${returnedData.response.type})</h4>
+                                  <p>You are about to change this taxonomy record by connecting it with the external LC authority entity above. Are you sure you want to do this?</p>
+                              </div>`
+      let splitUri = inputURI.split("/");
+      let termId = splitUri[(splitUri.length - 1)]
+      manAddPutRequest.setAttribute("data-bs-uri", returnedData.response.uri);
+      manAddPutRequest.setAttribute("data-bs-heading", returnedData.response.name);
+      manAddPutRequest.setAttribute("data-bs-repo", respType);
+      manAddPutRequest.setAttribute("data-bs-source", lcSource(returnedData.response.uri));
+      manAddPutRequest.setAttribute("data-bs-term-id", termId);
+      manAddPutRequest.style.display = "block";
+     }
+  else {
+     // request error
+     manAddErr.innerHTML = `<strong>Your search failed: ${xhr.statusText}.</strong>`;
+     manAddSearch.style.display = "block";
+     manAddSearchLoading.style.display = "none";
+     manAddErr.style.display = "block";
+     console.log('HTTP error:', xhr.status, xhr.statusText);
+    }
+  };
+
+  if ((manAddUriInput.value.startsWith("https://id.loc.gov")) || (manAddUriInput.value.startsWith("http://id.loc.gov"))) {
+    if (manAddUriInput.value.endsWith(".html")) {
+      searchURL = ((manAddUriInput.value).replace(".html", "")).trim()
+    }
+    else {
+      searchURL = (manAddUriInput.value).trim();
+    }
+    let sendData = {"uri": searchURL};
+    xhr.send(JSON.stringify(sendData));
+  }
+  else {
+    xhr.abort()
+    manAddErr.innerHTML = "You didn't enter an LC URI! They tend to start with <strong>id.loc.gov</strong>";
+    manAddErr.style.display = "block";
+    manAddSearch.style.display = "block";
+    manAddSearchLoading.style.display = "none";
+  };
+}
+
+
+manAddSearch.addEventListener("click", ()=>{
+  manLCSearch(event);
+});
+
+manAddForm.addEventListener("submit", ()=>{
+  manLCSearch(event);
+});
+
+
+manAddPutRequest.addEventListener("click", function (event) {
+  // Extract info from data-bs-* attributes
+  let uri = manAddPutRequest.getAttribute("data-bs-uri");
+  let heading = manAddPutRequest.getAttribute("data-bs-heading");
+  let respType = manAddPutRequest.getAttribute("data-bs-repo");
+  let source = manAddPutRequest.getAttribute("data-bs-source");
+  let termId = manAddPutRequest.getAttribute("data-bs-term-id");
+
+  var xhr = new XMLHttpRequest();
+  xhr.open("POST", "https://harmonizer.lib.asu.edu/subspace/update_repo_term");
+
+  xhr.setRequestHeader("Accept", "application/json");
+  xhr.setRequestHeader("Content-Type", "application/json");
+
+  manAddPutRequest.style.display = "none";
+  manAddpushLoading.style.display = "block";
+
+  xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4) {
+      manAddpushLoading.style.display = "none";
+      if (xhr.status === 200) {
+        manAddBody.innerHTML += `<strong>Record updated!</strong>`
+      }
+      else {
+        manAddBody.innerHTML += `<strong>It failed!</strong> Check log!`
+        console.log(xhr.status);
+        console.log(xhr.responseText);
+      }
+    }
+  }
+
+  let data = {
+    "repo_name": respType,
+    "term_id": termId,
+    "uri": uri,
+    "term_name": heading,
+    "source": source,
+    "token": myCookie
+  };
+
+  xhr.send(JSON.stringify(data));
+});

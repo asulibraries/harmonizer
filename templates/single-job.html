@@ -1,21 +1,15 @@
 {% extends "base.html" %}
 
 {% block content %}
+    <div class="col-md d-flex justify-content-center" style="margin-bottom: 10px;">
+      <h5 class="text-muted"><em>Job {{ job_id }} -- term ID# {{ rec }}</em></h5>
+    </div>
     <div class="container" style="padding-bottom: 15px; padding-top: 10px;background-color: #e9ecef;border-radius: .3rem;margin-bottom: 15px" id="form-div">
-      <form id="the-form">
-        <div class="form-group">
-          <label for="term-input"><h4>{{ kind|upper }} URL/Taxonomy Term ID</h4></label>
-          <input type="text" class="form-control" id="term-input" placeholder="Enter {{ kind|upper }} URL/taxonomy term ID here">
-        </div>
-        <p id="error" style="margin-top: 5px; margin-bottom: 5px; color: #8C1D40; display: none;"></p>
-        <button type="button" type="submit" value="submit" class="btn btn-primary btn-lg" id="term-search" style="margin-top: 10px">Lookup Term</button>
-        <button type="button" type="submit" value="submit" class="btn btn-outline-primary btn-lg" id="term-search-loading" style="margin-top: 10px;display: none;" disabled><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Looking for term...</button>
-      </form>
       <div id="response" style="display: none;padding: 1rem 1rem;background-color: #e9ecef;border-radius: .3rem;">
-        <h1 class="display-4" id="jumbo-name" style="margin-top: -15px;">Results</h1>
+        <h2 class="display-4" id="jumbo-name" style="margin-top: -15px;"></h2>
         <div id="resp-data-container" style="display: none;padding: 15px;margin-top: 15px;margin-bottom: 15px;background-color: #f7f7f7;border-radius: .3rem;margin-bottom: 15px;">
           <h3>{{ kind|upper }} Record Data</h3>
-          <div id="resp-data" data-type="{{ kind }}"></div>
+          <div id="resp-data" data-type="{{ kind }}" data-id="{{ rec }}"></div>
           <div style="margin-top: 10px;margin-bottom: 10px;">
             <div class="col-md gap-2 d-flex justify-content-left">
               <a href="#" id="items-link" class="btn btn-secondary" target="_blank" role="button">Open Linked {{ kind|upper }} Items in New Tab</a>
@@ -35,34 +29,58 @@
           </div>
           <button type="button" style="margin-top: 10px;margin-bottom: -20px;" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#manual-add-modal" id="manual-add-lc">Manually search LC headings</button>
         </div>
-        <div id="meshContainer" style="display: none;margin-top: 10px;padding: 2rem 1rem;background-color: #b6e3be;border-radius: .3rem;">
+        <div id="meshContainer" style="display: none;padding: 2rem 1rem;background-color: #b6e3be;border-radius: .3rem;">
           <h3 style="margin-top: -20px;margin-bottom: 15px;">MESH Headings</h3>
           <div class="accordion" id="accordionMeshNames">
             <p id="noMesh" style="display: block;margin-bottom: -5px;"><strong>No MESH headings found!</strong></p>
           </div>
         </div>
       </div>
-      <div style="margin-top: 10px;margin-bottom: 3px;display: none;" id="searchButtonList">
+      <div style="margin-top: 10px;margin-bottom: 3px;">
         <div class="row">
           <div class="col-md gap-2 d-flex justify-content-left">
             <button type="button" class="btn btn-primary btn-lg" id="lc-names">Load LC Headings</button>
             <button type="button" class="btn btn-outline-primary btn-lg" id="lc-names-loading" style="display: none;" disabled><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading, this may take a second...</button>
             <button type="button" class="btn btn-success btn-lg" id="mesh-names">Load MESH Headings</button>
             <button type="button" class="btn btn-outline-success btn-lg" id="mesh-loading" style="display: none;" disabled><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading, this may take a second ...</button>
-            <button type="button" class="btn btn-warning btn-lg" id="jumbo-new">New Search</button>
           </div>
         </div>
       </div>
     </div>
-      <div class="container" style="margin-bottom: 15px">
-      <a href="{{ url_for('dashboard') }}" class="btn btn-lg btn-danger" style="background-color: #87300b;margin-top: 15px" role="button">Return Home</a>
+    <div style="margin-top: 15px;margin-bottom: -1px;">
+      <div class="row">
+        {% if not first %}
+        <div class="col-md d-flex justify-content-end">
+          <a href="{{ url_for('view_job_record', input_user=user, job_id=job_id, rec=prev)}}" class="btn btn-outline-primary" role="button">Previous record</a>
+        </div>
+        {% else %}
+        <div class="col-md d-flex justify-content-end">
+          <a href="#" class="btn btn-primary disabled" role="button" aria-disabled="true">Previous record</a>
+        </div>
+        {% endif %}
+        <div class="col-md d-flex justify-content-center">
+          <button class="btn btn-outline-primary" role="button" type="button" id="delete-record" data-job_id="{{job_id}}" data-rec_id="{{rec}}" data-user="{{user}}">Remove from job & go to next</button>
+        </div>
+        {% if not last %}
+        <div class="col-md d-flex justify-content-left">
+          <a href="{{ url_for('view_job_record', input_user=user, job_id=job_id, rec=next)}}" class="btn btn-outline-primary" role="button">Next record</a>
+        </div>
+        {% else %}
+        <div class="col-md d-flex justify-content-left">
+          <a href="#" class="btn btn-primary disabled" role="button" aria-disabled="true">Next record</a>
+        </div>
+        {% endif %}
+      </div>
     </div>
-    <!-- Change Record Modal -->
+    <div class="col-md d-flex justify-content-center" style="margin-bottom: 15px">
+      <a href="{{ url_for('dashboard') }}" class="btn" style="background-color: #87300b;margin-top: 15px" role="button">Return Home</a>
+    </div>
+    <!-- Modal -->
     <div class="modal fade" id="pushModal" tabindex="-1" aria-labelledby="pushModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-lg">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">This is what you want?</h5>
+            <h5 class="modal-title">About to update {{ kind }} record ID {{ job_id }}...</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
@@ -70,9 +88,8 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-primary" id="push">Yes, I Understand</button>
-            <button type="button" class="btn btn-outline-primary btn-lg" id="push-loading" style="display: none;" disabled><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Working...</button>
+            <button type="button" class="btn btn-outline-primary btn-lg" id="push-loading" style="display: none;" disabled><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Working...</button></p>
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="close-modal">Close</button>
-            <button type="button" class="btn btn-warning btn-lg" id="modal-new-search" style="display: none;">New Search</button>
           </div>
         </div>
       </div>
@@ -91,7 +108,7 @@
                 <input type="text" class="form-control" id="manual-add-uri-input" placeholder="Enter LC URI here">
               </div>
               <button type="button" type="submit" value="submit" class="btn btn-primary" id="man-add-search" style="margin-top: 10px">Lookup Term</button>
-              <button type="button" class="btn btn-outline-primary" id="man-add-search-loading" style="margin-top: 10px;display: none;" disabled><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Looking for term...</button>
+              <button type="button" type="submit" value="submit" class="btn btn-outline-primary" id="man-add-search-loading" style="margin-top: 10px;display: none;" disabled><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Looking for term...</button>
             </form>
             <div id="manual-add-body">
               <p id="manual-add-error" style="margin-top: 5px; margin-bottom: 5px; color: #8C1D40; display: none;"></p>

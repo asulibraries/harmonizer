@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block content %}
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+      <div class="container">
+        <div class="col-md d-flex justify-content-center" style="margin-bottom: 20px;">
+          <ul class="list-group">
+          {% for message in messages %}
+            <li class="list-group-item list-group-item-warning"><strong>{{ message }}</strong></li>
+          {% endfor %}
+          </ul>
+        </div>
+      </div>
+      {% endif %}
+    {% endwith %}
+    <div class="container" style="padding-bottom: 15px; padding-top: 10px;background-color: #e9ecef;border-radius: .3rem;margin-bottom: 15px" id="form-div">
+      <h3 style="margin-bottom: 15px;">My Jobs (user: {{ user }})</h3>
+      <div id="jobs">
+      {% if jobs|length > 0 %}
+        <div class="row">
+          {% for job in jobs %}
+            <div class="col-sm-6">
+              <div class="card" style="margin-bottom: 15px;">
+            	  <div class="card-header">
+                  {{ job.repo.upper() }} Job
+                </div>
+                <div class="card-body">
+                  <h5 class="card-title">{{ job.job_name }}</h5>
+                  {% if 'collection_id' in job %}
+                  <p class="card-text">Collection: <strong>{{ job.collection_name }}</strong> (ID# {{ job.collection_id }})
+                  {% endif %}
+                  {% if 'item_id' in job %}
+                  <p class="card-text">Item: <strong>{{ job.item_name }}</strong> (ID# {{ job.item_id }})
+                  {% endif %}
+                  <p class="card-text">Number of taxonomy terms: {{ job.docs|length }}</p>
+                  <p class="card-text"><small class="text-muted">Created on {{ (job.created).strftime('%Y-%m-%d') }}</small></p>
+                  {% if job.docs|length > 0 %}
+                  <a href="{{ url_for('view_job_record', input_user=user, job_id=job.id, rec=1)}}" class="btn btn-info" style="margin-right: 5px;">Work on this job</a>
+                  {% else %}
+                  <a href="#" class="btn btn-info disabled" role="button" aria-disabled="true" style="margin-right: 5px;">Work on this job</a>
+                  {% endif %}
+                  <button class="btn btn-danger deleter" data-job_id="{{job.id}}" data-user="{{user}}">Delete this job</button>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+        {% else %}
+          <p>Sorry, no jobs found. Why not <a href="{{ url_for('run_jobs') }}">run a job?</a></p>
+        {% endif %}
+      </div>
+    </div>
+    <div class="container" style="margin-bottom: 15px">
+      <a href="{{ url_for('dashboard') }}" class="btn btn-lg btn-danger" style="background-color: #87300b;margin-top: 15px" role="button">Return Home</a>
+    </div>
+{% endblock %}

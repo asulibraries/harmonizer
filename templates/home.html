@@ -1,10 +1,21 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container">
-  <div class="d-grid gap-2 d-md-flex">
-    <a href="{{ url_for('keep_single') }}" class="btn btn-lg btn-primary" role="button">Edit a Single KEEP Term</a>
-    <a href="{{ url_for('prism_single') }}" class="btn btn-lg btn-primary" role="button">Edit a Single PRISM Term</a>
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <div class="col-md d-flex justify-content-center" style="margin-bottom: 20px;">
+      <ul class="list-group">
+      {% for message in messages %}
+        <li class="list-group-item list-group-item-warning"><strong>{{ message }}</strong></li>
+      {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+  {% endwith %}
+  <div class="d-grid gap-2 col-6 mx-auto">
+      <a href="{{ url_for('keep_single') }}" class="btn btn-lg btn-dark" role="button">Edit a Single KEEP Term</a>
+      <a href="{{ url_for('prism_single') }}" class="btn btn-lg btn-dark" role="button">Edit a Single PRISM Term</a>
+      <a href="{{ url_for('my_jobs') }}" class="btn btn-lg btn-dark" role="button">My Jobs</a>
+      <a href="{{ url_for('run_jobs') }}" class="btn btn-lg btn-dark" role="button">Run a New Job</a>
   </div>
-</div>
 {% endblock %}

@@ -163,3 +163,27 @@ def grab_lc(search_term):
         return sorted_enriched
     else:
         return None
+
+
+def manual_grab_lc(uri):
+    unsecrued_uri = uri.replace("https:", "http:")
+    headers = {"accept": "application/json"}
+    grab = r.get((uri + ".json"), headers=headers)
+    if grab.status_code == 200:
+        for obj in grab.json():
+            if obj["@id"] == unsecrued_uri:
+                data_package = {
+                    "uri": uri,
+                    "name": obj["http://www.loc.gov/mads/rdf/v1#authoritativeLabel"][0][
+                        "@value"
+                    ],
+                }
+                for auth_kind in obj["@type"]:
+                    if (
+                        auth_kind != "http://www.loc.gov/mads/rdf/v1#Authority"
+                        and auth_kind != "http://www.w3.org/2004/02/skos/core#Concept"
+                    ):
+                        data_package["type"] = (auth_kind.split("#"))[-1]
+                return True, data_package
+    else:
+        return False, grab.status_code

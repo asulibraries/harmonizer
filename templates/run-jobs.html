@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="container" style="padding-bottom: 15px; padding-top: 10px;background-color: #e9ecef;border-radius: .3rem;margin-bottom: 15px" id="form-div">
+      <h3>Run a Job</h3>
+      <div class="accordion accordion-flush" id="accordionFlush">
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="flush-headingOne">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
+              Retrieve all ontology terms found in a single KEEP collection
+            </button>
+          </h2>
+          <div id="flush-collapseOne" class="accordion-collapse collapse" aria-labelledby="flush-headingOne" data-bs-parent="#accordionFlush">
+            <div class="accordion-body">
+              <form id="single-coll-keep-form">
+                <div>
+                  <select id="single-coll-keep-dropdown" name="single-coll-keep-dropdown">
+                    <option value="none">---SELECT KEEP COLLECTION---</option>
+                    {% for i in colls["keep"] %}
+                    <option value="{{i['nid']}}||{{i['field_title']}}">{{i["field_title"]}}</option>
+                    {% endfor %}
+                 </select>
+                </div>
+                <div id="single-coll-keep-error"></div>
+                <div>
+                  <button type="button" type="submit" value="submit" class="btn btn-primary" id="single-coll-keep-run" data-col_id="none" data-user="{{user}}" data-type="keep" data-job_name="Retrieve all ontology terms found in a single collection" style="margin-top: 10px">Run job</button>
+                  <button type="button" class="btn btn-outline-primary" id="single-coll-keep-run-loading" style="margin-top: 10px;display: none;" disabled><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Running job...</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="flush-headingTwo">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseTwo" aria-expanded="false" aria-controls="flush-collapseTwo">
+              Retrieve all ontology terms found in a single PRISM collection
+            </button>
+          </h2>
+          <div id="flush-collapseTwo" class="accordion-collapse collapse" aria-labelledby="flush-headingTwo" data-bs-parent="#accordionFlush">
+            <div class="accordion-body">
+              <form id="single-coll-prism-form">
+                <div>
+                  <select id="single-coll-prism-dropdown" name="single-coll-prism-dropdown">
+                    <option value="none">---SELECT PRISM COLLECTION---</option>
+                    {% for i in colls["prism"] %}
+                    <option value="{{i['nid']}}||{{i['field_title']}}">{{ i["field_title"] }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div id="single-coll-prism-error"></div>
+                <div>
+                  <button type="button" type="submit" value="submit" class="btn btn-primary" data-col_id="none" data-user="{{user}}" data-type="prism" data-job_name="Retrieve all ontology terms found in a single collection" id="single-coll-prism-run" style="margin-top: 10px">Run job</button>
+                  <button type="button" class="btn btn-outline-primary" id="single-coll-prism-run-loading" style="margin-top: 10px;display: none;" disabled><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Running job...</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="flush-headingThree">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseThree" aria-expanded="false" aria-controls="flush-collapseThree">
+              Retrieve all ontology terms found in a single record
+            </button>
+          </h2>
+          <div id="flush-collapseThree" class="accordion-collapse collapse" aria-labelledby="flush-headingThree" data-bs-parent="#accordionFlush">
+            <div class="accordion-body">
+              <form id="single-item-form">
+                <div>
+                  <input type="radio" name="single-item-radio" value="keep" id="single-item-radio-keep" />
+                  <label for="keep">KEEP</label>
+                </div>
+                <div>
+                  <input type="radio" name="single-item-radio" value="prism" id="single-item-radio-prism" />
+                  <label for="prism">PRISM</label>
+                </div>
+                <div style="margin-top: 8px; max-width:50%;">
+                  <input type="text" id="single-item-input" placeholder="Enter Item ID here">
+                </div>
+                <div id="single-item-error"></div>
+                <div>
+                  <button type="button" type="submit" value="submit" class="btn btn-primary" id="single-item-run" data-user="{{user}}" data-type="none" data-job_name="Retrieve all ontology terms found in a single record" style="margin-top: 10px">Run job</button>
+                  <button type="button" class="btn btn-outline-primary" id="single-item-run-loading" style="margin-top: 10px;display: none;" disabled><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Running job...</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="container" style="margin-bottom: 15px">
+      <a href="{{ url_for('dashboard') }}" class="btn btn-lg btn-danger" style="background-color: #87300b;margin-top: 15px" role="button">Return Home</a>
+    </div>
+{% endblock %}
